@@ -1,0 +1,35 @@
+#!/bin/bash
+
+MYSQL="/usr/bin/mysqld_safe"
+MYSQL_ADMIN="/usr/bin/mysqladmin"
+INITDB="/usr/bin/mysql_install_db"
+
+# test if DATADIR is existent
+if [ ! -d $DATADIR ]; then
+  echo "Creating MySQL data at $DATADIR"
+  mkdir -p $DATADIR
+fi
+
+# test if DATADIR has content
+if [ ! "$(ls -A $DATADIR)" ]; then
+  echo "Initializing MySQL Database at $DATADIR"
+  chown -R mysql $DATADIR
+  $INITDB
+
+  echo "starting MySQL server..."
+  /usr/bin/mysqld_safe &
+  MYSQL_PID=$!
+
+  sleep 6
+
+  echo "setting root password"
+  $MYSQL_ADMIN -u root password "$MYSQL_ROOT_PW"
+  echo "creating user '$MYSQL_USER'..."
+  mysql -w --execute="CREATE USER '$MYSQL_USER'@'%'; GRANT ALL PRIVILEGES ON *.* TO '$MYSQL_USER'@'%' WITH GRANT OPTION; DELETE FROM mysql.user WHERE User='';DELETE FROM mysql.db WHERE user LIKE 'tes%'; FLUSH PRIVILEGES;" -h localhost -u root -p$MYSQL_ROOT_PW
+
+  echo "server running."
+  wait $MYSQL_PID
+else
+  echo "starting MySQL server..."
+  /usr/bin/mysqld_safe
+fi
