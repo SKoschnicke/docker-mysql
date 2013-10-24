@@ -15,7 +15,7 @@ RUN echo "mysql mysql-server/root_password_again string $MYSQL_ROOT_PW" | debcon
 RUN apt-get install -y mysql-server
 
 # define database directory for start-script
-ENV DATADIR /some/dir
+ENV DATADIR /var/lib/mysql
 
 # allow access from any IP
 RUN sed -i '/^bind-address*/ s/127.0.0.1/0.0.0.0/' /etc/mysql/my.cnf
